@@ -3,7 +3,6 @@
 
 # # Estudio comparativo de clasificadores para la predicción de fuga de clientes en la empresa Orange Telecom
 
-# In[114]:
 
 
 import pandas as pd
@@ -15,26 +14,16 @@ from sklearn.metrics import confusion_matrix, classification_report
 
 # Primero se importan los datos del conjunto de Prueba
 
-# In[115]:
-
-
 df1=pd.read_csv("churn-bigml-20.csv", sep=",") 
 df1
 
-
 # Y ahora los datos del conjunto de Entrenamiento
-
-# In[116]:
-
 
 df2=pd.read_csv("churn-bigml-80.csv", sep=",")
 df2
 
 
 # Primero se concatenarán las dos bases de datos, debido que no necesitaremos tenerlas por separado.
-
-# In[117]:
-
 
 df= pd.concat([df1,df2],axis=0)
 df.index=pd.Series(range(0,3333)) #se arregla el índice para que valla del 0 al 3332, con el concat se concatenaron los índices
@@ -43,15 +32,10 @@ df.head()
 
 # Se obtienen estadísticas básicas, tales como la media, desviación estándar, mínimo, máximo y algunos cuartiles.
 
-# In[118]:
-
-
 df.describe()
 
 
 # ¿Hay datos perdidos? con dropna(axis=0) se eliminan las filas que contengan datos perdidos, por tanto si no se elimina ninguna se podría concluir que no existen valores NaN.
-
-# In[119]:
 
 
 df.dropna(axis = 0)
@@ -61,15 +45,9 @@ df.dropna(axis = 0)
 
 # Se obtiene un gráfico de torta de la variable de respuesta churn.
 
-# In[ ]:
-
 
 churn=df.groupby((df['Churn'])).contador.sum() #se va sumando el contador en cada Estado según frecuencia
 churn.head()
-
-
-# In[ ]:
-
 
 colores = ["#60D394","#FF9B85"]
 
@@ -81,9 +59,6 @@ plt.show()
 
 # En consiguiente, un gráfico de barras sobre la cantidad de usuarios por cada estado:
 
-# In[ ]:
-
-
 estados=df.groupby((df['State'])).contador.sum()
 
 plt.figure(figsize=(40,10))
@@ -93,11 +68,7 @@ plt.ylabel('N° de usuarios', fontsize=25)
 plt.xticks(rotation=45,ha="right")
 estados.plot.bar()
 
-
 # Otro gráfico:
-
-# In[ ]:
-
 
 plt.figure(figsize=(12,6))
 sns.countplot(df["Customer service calls"],hue = df["Churn"],palette = "dark")
@@ -107,8 +78,6 @@ plt.ylabel('N° de usuarios', fontsize = 12)
 
 
 # Ahora se verán boxplot sobre el total de minutos en las categorías de day, eve, night y intl, para poder comparar el gasto de minutos en las diferentes variables.
-
-# In[120]:
 
 
 data1 =df["Total day minutes"]
@@ -133,9 +102,6 @@ plt.show()
 # 
 # Ahora se realiza lo mismo pero sobre el total de llamadas en las categorías de day, eve, night y intl, para poder comparar el total de llamadas en las diferentes variables.
 
-# In[121]:
-
-
 data5 =df["Total day calls"]
 data6 =df["Total eve calls"]
 data7 =df["Total night calls"]
@@ -156,9 +122,6 @@ plt.show()
 # 
 # Por último, se hará el mismo gráfico pero ahora para la categoría del total de recarga:
 
-# In[122]:
-
-
 data9 =df["Total day charge"]
 data10 =df["Total eve charge"]
 data11 =df["Total night charge"]
@@ -177,9 +140,6 @@ plt.show()
 
 # Violin plot del total de minutos en la noche según el uso del plan internacional
 
-# In[ ]:
-
-
 #Violinplot
 fig7, ax7 = plt.subplots()
 ax7.violinplot(df_TNMxIPsi, vert = False)
@@ -196,15 +156,8 @@ plt.show()
 
 # Para finalizar, se hará un análisis de correlación entre todas las variables para poder identificar si hay indicios de existencia de multicolinealidad, lo que puede afectar a estudios posteriores para la predicción de datos (por ejemplo, puede afectar a la regresión logística).
 
-# In[123]:
-
-
 corr_df = df.corr(method='pearson')
 corr_df
-
-
-# In[124]:
-
 
 plt.figure(figsize=(8, 6))
 sns.heatmap(corr_df, annot=True)
@@ -215,18 +168,12 @@ plt.show()
 
 # Para reafirmar lo anterior, se hace un gráfico pairplot a través de la librería seaborn:
 
-# In[125]:
-
-
 sns.pairplot(df)
 
 
 # Se aprecia rotundamente que la correlación entre la variable charge y los minutos que ocupa una persona (ya sean en el día, noche, etc.) están correlacionados linealmente con un valor de apróx 1. El resto de variables no se observa que contengan una correlación entre si.
 
 # Se separa el conjunto en entrenamiento y prueba. Primero, se seleccionan las variables que se ocuparán como X (no se toma en cuenta los estados ya que son variables categóricas (y apróx 50 estados diferentes) por tanto no aportarán a los clasificadores, además de no poder usar el standard scaler en ellos.
-
-# In[126]:
-
 
 diccionariocategorico={"Yes":1,"No":0}  #se cambian los yes y no por 0
 df=df.replace(diccionariocategorico)
@@ -237,9 +184,6 @@ x.head()
 
 # Ahora se selecciona la variable Churn que se ocupará como Y.
 
-# In[127]:
-
-
 diccionariobooleano = {True: 1, False: 0} #para cambiar los True y False, ya que se consideran booleanos
 df = df.replace(diccionariobooleano)
 
@@ -249,40 +193,22 @@ y.head()
 
 # Ahora se separa el conjunto de datos en entrenamiento(70%) y test (30%):
 
-# In[128]:
-
-
 from sklearn.model_selection import train_test_split
 
 X_train, X_test, y_train, y_test = train_test_split(x, y, 
                 test_size=0.3, random_state=1, stratify=y)
 
 
-# In[129]:
-
-
 X_train.shape
-
-
-# In[130]:
-
 
 X_test.shape
 
-
-# In[131]:
-
-
 y_train.shape
-
-
-# In[132]:
-
 
 y_test.shape
 
 
-# #### 7. Estandarizar los atributos utilizando el StandardScaler
+# #### Estandarizar los atributos utilizando el StandardScaler
 # 
 # Con el fin de que todos los atributos tenga igual importancia al entrenar un clasificador, y debido a que los clasificadores están optimizados para los datos escalados. Procederemos a reescalar los datos.
 # 
@@ -307,9 +233,6 @@ Z_test = sc.transform(X_test)
 
 # LDA (Linear Discriminant Analysis)
 
-# In[134]:
-
-
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis, QuadraticDiscriminantAnalysis
 
 lda = LinearDiscriminantAnalysis()
@@ -322,9 +245,6 @@ confusion_matrix(y_test, predldamodel)
 
 # QDA (Quadratic Discriminant Analysis)
 
-# In[135]:
-
-
 qda = QuadraticDiscriminantAnalysis()
 qdamodel = qda.fit(Z_train, y_train)
 
@@ -334,9 +254,6 @@ confusion_matrix(y_test, predqdamodel)
 
 
 # Árbol de decisión
-
-# In[136]:
-
 
 from sklearn.tree import DecisionTreeClassifier
 
@@ -350,9 +267,6 @@ confusion_matrix(y_test,predarbolmodel)
 
 # Random Forest
 
-# In[137]:
-
-
 from sklearn.ensemble import RandomForestClassifier
 
 randomforest = RandomForestClassifier(criterion = 'gini', 
@@ -364,9 +278,6 @@ confusion_matrix(y_test,predrandomforestmodel)
 
 
 # Regresión Logística
-
-# In[138]:
-
 
 from sklearn.linear_model import LogisticRegression
 
@@ -380,9 +291,6 @@ confusion_matrix(y_test,predreglogismodel)
 
 # SVC lineal
 
-# In[139]:
-
-
 from sklearn.svm import SVC
 
 svclineal = SVC(C = 100, kernel = 'linear')
@@ -395,9 +303,6 @@ confusion_matrix(y_test,predsvclinealmodel)
 
 # SVC radio basal
 
-# In[140]:
-
-
 svcrb=SVC(C=100, kernel='rbf')
 svcrbmodel=svcrb.fit(Z_train,y_train)
 
@@ -407,9 +312,6 @@ confusion_matrix(y_test,predsvcrbmodel)
 
 
 # Perceptron
-
-# In[141]:
-
 
 from sklearn.linear_model import Perceptron
 
@@ -423,9 +325,6 @@ confusion_matrix(y_test,predperceptronmodel)
 
 # Perceptrón Multicapa
 
-# In[142]:
-
-
 from sklearn.neural_network import MLPClassifier
 
 perceptronmc = MLPClassifier(random_state=1, max_iter=300)
@@ -438,9 +337,6 @@ confusion_matrix(y_test,predperceptronmcmodel)
 
 # K-Neighbors Classifier
 
-# In[143]:
-
-
 from sklearn.neighbors import KNeighborsClassifier
 
 kneighbor = KNeighborsClassifier(n_neighbors=5)
@@ -452,9 +348,6 @@ confusion_matrix(y_test,predkneighbormodel)
 
 
 # Gradient Boosting
-
-# In[144]:
-
 
 from sklearn.ensemble import GradientBoostingClassifier
 
@@ -469,9 +362,6 @@ confusion_matrix(y_test,predgradientboosmodel)
 
 # XGBoost
 
-# In[145]:
-
-
 import xgboost as xgb
 
 xgboost = xgb.XGBClassifier()
@@ -484,14 +374,7 @@ confusion_matrix(y_test,predxgboostmodel)
 
 # #### 9. Obtener las métricas de desempeño para todos los clasificadores (Accuracy, Recall, Precision, Specificity, F-measure) y construir una tabla comparativa.
 
-# In[146]:
-
-
 from sklearn.metrics import precision_score, accuracy_score, recall_score, f1_score
-
-
-# In[147]:
-
 
 ##Accuracy
 acc1=accuracy_score(y_test, predldamodel)
@@ -507,10 +390,6 @@ acc10=accuracy_score(y_test,predkneighbormodel)
 acc11=accuracy_score(y_test,predgradientboosmodel)
 acc12=accuracy_score(y_test,predxgboostmodel)
 
-
-# In[148]:
-
-
 #Recall
 recall1=recall_score(y_test, predldamodel)
 recall2=recall_score(y_test, predqdamodel)
@@ -524,9 +403,6 @@ recall9=recall_score(y_test, predperceptronmcmodel)
 recall10=recall_score(y_test,predkneighbormodel)
 recall11=recall_score(y_test,predgradientboosmodel)
 recall12=recall_score(y_test,predxgboostmodel)
-
-
-# In[149]:
 
 
 ## Precisión
@@ -549,10 +425,6 @@ prec12=precision_score(y_test,predxgboostmodel)
 # Specificity=$\frac{VN}{FP+VN}$
 # 
 # Y además, la función confusion_matrix de la librería sklearn entrega la matriz con los resultados al revés, por tanto, se deberá hacer los cálculos manuales al revés también. ( https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html ) 
-
-# In[163]:
-
-
 
 cm1=confusion_matrix(y_test, predldamodel)
 cm2=confusion_matrix(y_test, predqdamodel)
@@ -598,10 +470,6 @@ f9=f1_score(y_test, predperceptronmcmodel)
 f10=f1_score(y_test,predkneighbormodel)
 f11=f1_score(y_test,predgradientboosmodel)
 f12=f1_score(y_test,predxgboostmodel)
-
-
-# In[165]:
-
 
 # TABLA COMPARATIVA:
 
